@@ -9,4 +9,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_mobile">MobileActivity</string>
+    <string name="edittext_hint_post_content">What\'s on your mind?</string>
+    <string name="button_text_post">Post</string>
 </resources>

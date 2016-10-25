@@ -1,4 +1,4 @@
-package com.androidfung.facebook.pagesmanager;
+package com.androidfung.facebook.pagesmanager.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

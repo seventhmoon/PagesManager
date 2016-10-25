@@ -1,59 +1,61 @@
-package com.androidfung.facebook.pagesmanager;
+package com.androidfung.facebook.pagesmanager.ui;
 
-import android.app.Activity;
-import android.content.Context;
+
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Base64;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.androidfung.facebook.graph.model.FeedResponse;
-import com.androidfung.facebook.graph.model.PageAccessTokenResponse;
+import com.androidfung.facebook.graph.model.Account;
+import com.androidfung.facebook.pagesmanager.R;
+import com.androudfung.facebook.graph.model.response.me.AccountsResponse;
 import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
-import com.facebook.GraphRequestAsyncTask;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
-import com.facebook.LoggingBehavior;
-import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, PageFeedFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, PageFeedFragment.OnFragmentInteractionListener, NavigationCallback, NewPostFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private CallbackManager mCallbackManager;
+    private AccessTokenTracker mAccessTokenTracker;
 
     private String mPageId;
-    private String mPageAccessToken;
+//    private String mPageAccessToken;
+
+    private DrawerLayout mDrawer;
+    private FloatingActionButton mFab;
+    private NavigationView mNavigationView;
+
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,29 +67,54 @@ public class MainActivity extends BaseActivity
 
         setContentView(R.layout.activity_main);
 
+        initViews();
+
+
+        if (AccessToken.getCurrentAccessToken() == null) {
+            //user not logged in
+
+            //show login Fragment
+            hideFab();
+
+        } else {
+            //user logged in
+
+            //get page id array
+            getAvailablePagesAsync();
+
+            //show post feed fragment
+            showFab();
+        }
+    }
+
+
+    private void initViews() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mFab.setOnClickListener(view -> showNewPostDialog() );
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-                createNewPost();
-            }
-        });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
+                this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
-        View headerLayout = navigationView.getHeaderView(0);
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        mNavigationView.setNavigationItemSelectedListener(this);
+
+        mRecyclerView = (RecyclerView) mNavigationView.findViewById(R.id.recyclerview_pages);
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mRecyclerView.setHasFixedSize(false);
+
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        // specify an adapter (see also next example)
+        View headerLayout = mNavigationView.getHeaderView(0);
 
         LoginButton loginButton = (LoginButton) headerLayout.findViewById(R.id.login_button);
 
@@ -96,6 +123,10 @@ public class MainActivity extends BaseActivity
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Toast.makeText(getApplicationContext(), loginResult.toString(), Toast.LENGTH_SHORT).show();
+
+
+                updateDrawerAsync();
+                mDrawer.closeDrawers();
             }
 
             @Override
@@ -108,6 +139,11 @@ public class MainActivity extends BaseActivity
                 Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateDrawerAsync() {
+
+        getAvailablePagesAsync();
     }
 
     @Override
@@ -135,9 +171,9 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -148,25 +184,22 @@ public class MainActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+//        if (id == R.id.nav_camera) {
+//            // Handle the camera action
+//        } else if (id == R.id.nav_gallery) {
+//
+//        } else if (id == R.id.nav_slideshow) {
+//
+//        } else if (id == R.id.nav_manage) {
+//
+//        } else if (id == R.id.nav_share) {
+//
+//        } else if (id == R.id.nav_send) {
+//            displayPostFeed();
+//        }
 
-        } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-            FragmentManager fm = getSupportFragmentManager();
-            FragmentTransaction ft = fm.beginTransaction();
-            ft.replace(R.id.content_main, new PageFeedFragment());
-            ft.commit();
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -201,23 +234,93 @@ public class MainActivity extends BaseActivity
 //        ).executeAsync();
 //    }
 
-    private void createNewPost(){
+
+    private void createNewPostAsync(String pageId, String content) {
 
         Bundle params = new Bundle();
-        params.putString("message", "This is a test message");
+        params.putString("message", content);
 /* make the API call */
         new GraphRequest(
 
                 AccessToken.getCurrentAccessToken(),
-                "/"+ mPageId + "/feed",
+                "/" + pageId + "/feed",
                 params,
                 HttpMethod.POST,
-                new GraphRequest.Callback() {
-                    public void onCompleted(GraphResponse response) {
+                graphResponse -> {
+
             /* handle the result */
-                        Log.d(TAG, response.toString());
+                    Log.d(TAG, graphResponse.toString());
+                    displayPageFeed(mPageId);
+                }
+
+        ).executeAsync();
+    }
+
+
+    private void getAvailablePagesAsync() {
+
+        /* make the API call */
+        new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/me/accounts",
+                null,
+                HttpMethod.GET,
+                response -> {
+
+                    /* handle the result */
+
+                    String graphObject = response.getJSONObject().toString();
+                    Gson gson = new GsonBuilder().create();
+                    AccountsResponse tokenResponse = gson.fromJson(graphObject, AccountsResponse.class);
+
+
+                    // TODO: 10/19/2016 1. Update ActionBar Spinner; 2. Load item 0
+                    List<Account> accounts = tokenResponse.getData();
+                    if (accounts != null) {
+                        //update Drawer
+                        mAdapter = new NavPageListAdapter(accounts, this);
+                        mRecyclerView.setAdapter(mAdapter);
+
+                        //load item 0;
                     }
+
+
                 }
         ).executeAsync();
+
+    }
+
+
+    private void hideFab() {
+        mFab.setVisibility(View.GONE);
+    }
+
+    private void showFab() {
+        mFab.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void displayPageFeed(String pageId) {
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        PageFeedFragment feedFragment = PageFeedFragment.newInstance(pageId);
+        ft.replace(R.id.content_main, feedFragment);
+        ft.commit();
+        mPageId = pageId;
+        mDrawer.closeDrawers();
+    }
+
+    private void showNewPostDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        NewPostFragment newPostFragment = new NewPostFragment();
+        newPostFragment.show(fm, "fragment_edit_name");
+    }
+
+
+
+
+    @Override
+    public void onPostButtonPressed(String pageId, String content) {
+        createNewPostAsync(pageId, content);
     }
 }

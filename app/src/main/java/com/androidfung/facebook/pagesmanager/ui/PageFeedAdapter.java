@@ -1,4 +1,4 @@
-package com.androidfung.facebook.pagesmanager;
+package com.androidfung.facebook.pagesmanager.ui;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,8 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.androidfung.facebook.graph.model.Post;
-
-import org.w3c.dom.Text;
+import com.androidfung.facebook.pagesmanager.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +51,7 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
                                                    int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.card_post, parent, false);
+                .inflate(R.layout.item_post, parent, false);
         // set the view's size, margins, paddings and layout parameters
 
         ViewHolder vh = new ViewHolder(v);

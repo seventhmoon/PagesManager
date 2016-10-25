@@ -1,9 +1,9 @@
-package com.androidfung.facebook.pagesmanager;
+package com.androidfung.facebook.pagesmanager.ui;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,7 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.androidfung.facebook.graph.model.FeedResponse;
+import com.androudfung.facebook.graph.model.response.page.FeedResponse;
+import com.androidfung.facebook.pagesmanager.R;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
@@ -36,6 +37,8 @@ public class PageFeedFragment extends Fragment {
     private static final String ARG_PAGE_ID = "pageId";
 
     private String mPageId;
+
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -77,6 +80,24 @@ public class PageFeedFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_page_feed, container, false);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefresh);
+/*
+ * Sets up a SwipeRefreshLayout.OnRefreshListener that is invoked when the user
+ * performs a swipe-to-refresh gesture.
+ */
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+
+                        // This method performs the actual data-refresh operation.
+                        // The method calls setRefreshing(false) when it's finished.
+                        updateFeedAsync();
+                    }
+                }
+        );
+
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.feed_recycler_view);
 
         // use this setting to improve performance if you know that changes
@@ -90,31 +111,34 @@ public class PageFeedFragment extends Fragment {
         // specify an adapter (see also next example)
 
 
-/* make the API call */
-        new GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                "/" + getString(R.string.facebook_page_id) + "/feed?include_hidden=true",
-                null,
-                HttpMethod.GET,
-                new GraphRequest.Callback() {
-                    public void onCompleted(GraphResponse response) {
-            /* handle the result */
-                        Log.d(TAG, response.toString());
-//                        String rawResponse = response.getRawResponse();
-                        String graphObject = response.getJSONObject().toString();
-                        Gson gson = new GsonBuilder().create();
-                        FeedResponse feedResponse = gson.fromJson(graphObject, FeedResponse.class);
-
-                        mAdapter = new PageFeedAdapter(feedResponse.getData());
-                        mRecyclerView.setAdapter(mAdapter);
-
-
-                    }
-                }
-        ).executeAsync();
+        updateFeedAsync();
 
 
         return rootView;
+    }
+
+    public void updateFeedAsync() {
+        /* make the API call */
+        new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/" + mPageId + "/feed?include_hidden=true",
+                null,
+                HttpMethod.GET,
+                graphResponse -> {
+                /* handle the result */
+                    Log.d(TAG, graphResponse.toString());
+                    String graphObject = graphResponse.getJSONObject().toString();
+                    Gson gson = new GsonBuilder().create();
+                    FeedResponse feedResponse = gson.fromJson(graphObject, FeedResponse.class);
+
+                    mAdapter = new PageFeedAdapter(feedResponse.getData());
+                    mRecyclerView.setAdapter(mAdapter);
+
+                    mSwipeRefreshLayout.setRefreshing(false);
+                }
+
+        ).executeAsync();
+
     }
 
     @Override
