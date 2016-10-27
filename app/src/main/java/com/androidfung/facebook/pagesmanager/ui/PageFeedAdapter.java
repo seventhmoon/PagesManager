@@ -1,5 +1,6 @@
 package com.androidfung.facebook.pagesmanager.ui;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +10,10 @@ import android.widget.TextView;
 import com.androidfung.facebook.graph.model.Post;
 import com.androidfung.facebook.pagesmanager.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by fung on 10/14/2016.
@@ -18,8 +21,11 @@ import java.util.List;
 
 public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHolder> {
 
-
+    private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.US);
+    private static final String TAG = PageFeedAdapter.class.getSimpleName();
     private ArrayList<Post> mDataset;
+    private Context mContext;
+//    private String mPageId;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -29,20 +35,25 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
         public View mRootView;
         public TextView mTextViewId;
         public TextView mTextViewMessage;
-        public TextView mTextViewStory;
+//        public TextView mTextViewStory;
         public TextView mTextViewCreatedTime;
+        public TextView mTextViewViewCount;
+        public TextView mTextViewHidden;
         public ViewHolder(View v) {
             super(v);
-            mTextViewId = (TextView) v.findViewById(R.id.post_id_textview);
-            mTextViewCreatedTime = (TextView)v.findViewById(R.id.post_created_time_textview);
-            mTextViewMessage = (TextView) v.findViewById(R.id.post_message_textview);
-            mTextViewStory = (TextView)v.findViewById(R.id.post_story_textview);
+            mTextViewId = (TextView) v.findViewById(R.id.textview_post_id);
+            mTextViewCreatedTime = (TextView)v.findViewById(R.id.textview_post_created_time);
+            mTextViewMessage = (TextView) v.findViewById(R.id.textview_post_message);
+//            mTextViewStory = (TextView)v.findViewById(R.id.textview_post_story);
+            mTextViewViewCount = (TextView) v.findViewById(R.id.textview_post_view_count);
+            mTextViewHidden = (TextView) v.findViewById(R.id.textview_post_hidden);
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public PageFeedAdapter(List<Post> myDataset) {
-        mDataset = new ArrayList<Post>(myDataset);
+    public PageFeedAdapter(Context context, List<Post> myDataset) {
+        mContext = context;
+        mDataset = new ArrayList<>(myDataset);
     }
 
     // Create new views (invoked by the layout manager)
@@ -66,8 +77,21 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
         Post post = mDataset.get(position);
         holder.mTextViewId.setText(post.getId());
         holder.mTextViewMessage.setText(post.getMessage());
-        holder.mTextViewStory.setText(post.getStory());
-        holder.mTextViewCreatedTime.setText(post.getCreatedTime().toString());
+//        holder.mTextViewStory.setText(post.getStory());
+
+        holder.mTextViewHidden.setVisibility(post.isHidden()?View.VISIBLE:View.GONE);
+
+        holder.mTextViewCreatedTime.setText(mDateFormat.format(post.getCreatedTime()));
+
+        if (post.getInsights() != null && post.getInsights().getData().get(0) != null && post.getInsights().getData().get(0).getValues().get(0) != null) {
+            int viewCount = post.getInsights().getData().get(0).getValues().get(0).getValue();
+            holder.mTextViewViewCount.setText(mContext.getResources().getQuantityString(R.plurals.label_view, viewCount, viewCount));
+            holder.mTextViewViewCount.setVisibility(View.VISIBLE);
+        }else{
+            holder.mTextViewViewCount.setVisibility(View.GONE);
+        }
+
+//        updateViewCountAsync(post.getId(), holder.mTextViewViewCount);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -75,4 +99,39 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
     public int getItemCount() {
         return mDataset.size();
     }
+
+//    private void updateViewCountAsync(String postId, TextView textView){
+//
+//
+//   /* make the API call */
+//        new GraphRequest(
+//                AccessToken.getCurrentAccessToken(),
+//                "/" + postId + "/insights/post_impressions",
+//                null,
+//                HttpMethod.GET,
+//                response -> {
+//
+//                    /* handle the result */
+//
+//                    String graphObject = response.getJSONObject().toString();
+//                    Gson gson = new GsonBuilder().create();
+//                    InsightsResponse tokenResponse = gson.fromJson(graphObject, InsightsResponse.class);
+//
+//                    List<Insight> insights = tokenResponse.getData();
+//                    Log.d(TAG, insights.toString());
+//
+//
+//                    if (insights.size() > 0){
+//                        Insight firstInsight = insights.get(0);
+//                        int viewCount = firstInsight.getValues().get(0).getValue();
+//                        String text = mContext.getResources().getQuantityString(R.plurals.label_link, viewCount, viewCount);
+//                        textView.setText(text);
+//                    }else{
+//                        Log.e(TAG, "Failed to obtain view count.");
+//                    }
+//                }
+//        ).executeAsync();
+//
+//
+//    }
 }

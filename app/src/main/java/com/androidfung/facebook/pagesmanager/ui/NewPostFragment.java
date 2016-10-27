@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,9 +24,8 @@ import com.androidfung.facebook.pagesmanager.R;
  */
 public class NewPostFragment extends DialogFragment {
 
-
+    private static final String TAG = NewPostFragment.class.getSimpleName();
     private static final String ARG_PAGE_ID = "page_id";
-
 
 
     private String mPageId;
@@ -68,12 +68,13 @@ public class NewPostFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView =  inflater.inflate(R.layout.fragment_new_post, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_new_post, container, false);
 
         mButtonSubmit = (Button) rootView.findViewById(R.id.button_post);
         mEditTextContent = (EditText) rootView.findViewById(R.id.edittext_post_content);
 
         mButtonSubmit.setOnClickListener(view -> {
+            Log.d(TAG, mPageId + "\t" + mEditTextContent.getText().toString());
             mListener.onPostButtonPressed(mPageId, mEditTextContent.getText().toString());
             this.dismiss();
         });

@@ -10,15 +10,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.androudfung.facebook.graph.model.response.page.FeedResponse;
+import com.androidfung.facebook.graph.GraphRequestHelper;
+import com.androidfung.facebook.graph.model.response.page.FeedResponse;
 import com.androidfung.facebook.pagesmanager.R;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
+import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import java.util.Arrays;
 
 
 /**
@@ -72,6 +76,11 @@ public class PageFeedFragment extends Fragment {
         if (getArguments() != null) {
             mPageId = getArguments().getString(ARG_PAGE_ID);
         }
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("read_insights"));
+    }
+
+    public void refresh() {
+        updateFeedAsync();
     }
 
     @Override
@@ -85,17 +94,14 @@ public class PageFeedFragment extends Fragment {
  * Sets up a SwipeRefreshLayout.OnRefreshListener that is invoked when the user
  * performs a swipe-to-refresh gesture.
  */
-        mSwipeRefreshLayout.setOnRefreshListener(
-                new SwipeRefreshLayout.OnRefreshListener() {
-                    @Override
-                    public void onRefresh() {
-                        Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
+        mSwipeRefreshLayout.setOnRefreshListener(() -> {
+                    Log.i(TAG, "onRefresh called from SwipeRefreshLayout");
 
-                        // This method performs the actual data-refresh operation.
-                        // The method calls setRefreshing(false) when it's finished.
-                        updateFeedAsync();
-                    }
+                    // This method performs the actual data-refresh operation.
+                    // The method calls setRefreshing(false) when it's finished.
+                    updateFeedAsync();
                 }
+
         );
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.feed_recycler_view);
@@ -117,27 +123,26 @@ public class PageFeedFragment extends Fragment {
         return rootView;
     }
 
-    public void updateFeedAsync() {
+    private void updateFeedAsync() {
         /* make the API call */
-        new GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                "/" + mPageId + "/feed?include_hidden=true",
-                null,
-                HttpMethod.GET,
-                graphResponse -> {
+        GraphRequestHelper.getFeedGraphRequest(mPageId, graphResponse -> {
                 /* handle the result */
-                    Log.d(TAG, graphResponse.toString());
-                    String graphObject = graphResponse.getJSONObject().toString();
-                    Gson gson = new GsonBuilder().create();
-                    FeedResponse feedResponse = gson.fromJson(graphObject, FeedResponse.class);
+            Log.d(TAG, graphResponse.toString());
+            if (graphResponse.getJSONObject() == null) {
+                Log.d(TAG, graphResponse.getError().toString());
+            } else {
+                String graphObject = graphResponse.getJSONObject().toString();
+                Gson gson = new GsonBuilder().create();
+                FeedResponse feedResponse = gson.fromJson(graphObject, FeedResponse.class);
 
-                    mAdapter = new PageFeedAdapter(feedResponse.getData());
-                    mRecyclerView.setAdapter(mAdapter);
-
-                    mSwipeRefreshLayout.setRefreshing(false);
+                mAdapter = new PageFeedAdapter(getContext(), feedResponse.getData());
+                mRecyclerView.setAdapter(mAdapter);
+                if (feedResponse.getData().isEmpty()) {
+                    Toast.makeText(getActivity(), "The result set is empty.", Toast.LENGTH_SHORT).show();
                 }
-
-        ).executeAsync();
+            }
+            mSwipeRefreshLayout.setRefreshing(false);
+        }).executeAsync();
 
     }
 

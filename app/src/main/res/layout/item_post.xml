@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="4dp"
-    android:layout_marginBottom="4dp">
+    android:layout_marginBottom="4dp"
+    android:layout_marginTop="4dp">
     <!-- A CardView that contains a TextView -->
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"
@@ -11,30 +11,51 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/post_id_textview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:id="@+id/textview_post_created_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
 
             <TextView
-                android:id="@+id/post_message_textview"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:id="@+id/textview_post_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:visibility="gone" />
 
             <TextView
-                android:id="@+id/post_story_textview"
+                android:id="@+id/textview_post_message"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:layout_below="@id/textview_post_created_time"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
 
             <TextView
-                android:id="@+id/post_created_time_textview"
+                android:id="@+id/textview_post_view_count"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
+                android:layout_height="match_parent"
+                android:layout_below="@id/textview_post_message"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
+            <TextView
+                android:id="@+id/textview_post_hidden"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@id/textview_post_message"
+                android:text="@string/label_hidden"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>

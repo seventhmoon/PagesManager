@@ -3,13 +3,12 @@ package com.androidfung.facebook.pagesmanager.ui;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
 import com.androidfung.facebook.pagesmanager.R;
-import com.androudfung.facebook.graph.model.response.me.AccountsResponse;
+import com.androidfung.facebook.graph.model.response.me.AccountsResponse;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;

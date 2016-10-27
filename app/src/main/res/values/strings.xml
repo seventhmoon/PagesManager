@@ -12,4 +12,7 @@
     <string name="title_activity_mobile">MobileActivity</string>
     <string name="edittext_hint_post_content">What\'s on your mind?</string>
     <string name="button_text_post">Post</string>
+    <string name="label_hidden">Hidden</string>
+    <string name="title_activity_dummy_tabbed">DummyTabbedActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>
