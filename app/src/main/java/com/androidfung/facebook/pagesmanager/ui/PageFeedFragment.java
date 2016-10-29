@@ -2,6 +2,7 @@ package com.androidfung.facebook.pagesmanager.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidfung.facebook.graph.GraphRequestHelper;
@@ -17,11 +19,14 @@ import com.androidfung.facebook.graph.model.response.page.FeedResponse;
 import com.androidfung.facebook.pagesmanager.R;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 
 
@@ -35,10 +40,21 @@ import java.util.Arrays;
  */
 public class PageFeedFragment extends Fragment {
 
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({TYPE_FEED, TYPE_PROMOTEABLE_POSTS})
+    public @interface Type {
+    }
+
+    public static final int TYPE_FEED = 0;
+    public static final int TYPE_PROMOTEABLE_POSTS = 1;
+
     private static final String TAG = PageFeedFragment.class.getSimpleName();
 
 
     private static final String ARG_PAGE_ID = "pageId";
+    private static final String ARG_TYPE = "type";
+
 
     private String mPageId;
 
@@ -48,7 +64,10 @@ public class PageFeedFragment extends Fragment {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
+    private TextView mTextViewEmpty;
+
     private OnFragmentInteractionListener mListener;
+    private int mType;
 
     public PageFeedFragment() {
         // Required empty public constructor
@@ -62,12 +81,22 @@ public class PageFeedFragment extends Fragment {
      * @return A new instance of fragment PageFeedFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static PageFeedFragment newInstance(String pageId) {
+    public static PageFeedFragment newInstance(String pageId, @Type int type) {
         PageFeedFragment fragment = new PageFeedFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PAGE_ID, pageId);
+        args.putInt(ARG_TYPE, type);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public String getPageId() {
+        return mPageId;
+    }
+
+    public void setPageId(String pageId) {
+        this.mPageId = pageId;
+        this.refresh();
     }
 
     @Override
@@ -75,6 +104,9 @@ public class PageFeedFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mPageId = getArguments().getString(ARG_PAGE_ID);
+            mType = getArguments().getInt(ARG_TYPE);
+
+            Log.d(TAG, mPageId);
         }
         LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("read_insights"));
     }
@@ -88,7 +120,7 @@ public class PageFeedFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_page_feed, container, false);
-
+        mTextViewEmpty = (TextView) rootView.findViewById(R.id.textview_empty);
         mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swiperefresh);
 /*
  * Sets up a SwipeRefreshLayout.OnRefreshListener that is invoked when the user
@@ -124,9 +156,10 @@ public class PageFeedFragment extends Fragment {
     }
 
     private void updateFeedAsync() {
-        /* make the API call */
-        GraphRequestHelper.getFeedGraphRequest(mPageId, graphResponse -> {
-                /* handle the result */
+
+        GraphRequest.Callback callback = graphResponse -> {
+
+                      /* handle the result */
             Log.d(TAG, graphResponse.toString());
             if (graphResponse.getJSONObject() == null) {
                 Log.d(TAG, graphResponse.getError().toString());
@@ -138,11 +171,30 @@ public class PageFeedFragment extends Fragment {
                 mAdapter = new PageFeedAdapter(getContext(), feedResponse.getData());
                 mRecyclerView.setAdapter(mAdapter);
                 if (feedResponse.getData().isEmpty()) {
-                    Toast.makeText(getActivity(), "The result set is empty.", Toast.LENGTH_SHORT).show();
+                    mRecyclerView.setVisibility(View.GONE);
+                    mTextViewEmpty.setVisibility(View.VISIBLE);
+//                        Toast.makeText(getActivity(), "The result set is empty.", Toast.LENGTH_SHORT).show();
+                } else {
+                    mRecyclerView.setVisibility(View.VISIBLE);
+                    mTextViewEmpty.setVisibility(View.GONE);
+
                 }
             }
             mSwipeRefreshLayout.setRefreshing(false);
-        }).executeAsync();
+
+        };
+
+        if (mType == TYPE_FEED) {
+            /* make the API call */
+            GraphRequest graphRequest = GraphRequestHelper.getFeedGraphRequest(mPageId, callback);
+            Log.d(TAG, graphRequest.toString());
+            graphRequest.executeAsync();
+        } else {
+            GraphRequest graphRequest = GraphRequestHelper.getPromotablePostsGraphRequest(mPageId, callback);
+            Log.d(TAG, graphRequest.toString());
+            graphRequest.executeAsync();
+        }
+
 
     }
 

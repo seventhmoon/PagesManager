@@ -5,12 +5,23 @@
     android:layout_height="match_parent"
     tools:context="com.androidfung.facebook.pagesmanager.ui.PageFeedFragment">
 
-
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <android.support.v7.widget.RecyclerView
         android:id="@+id/feed_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_centerInParent="true"
         android:scrollbars="vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/text_no_content"
+            android:id="@+id/textview_empty"/>
+    </RelativeLayout>
 
 
 </android.support.v4.widget.SwipeRefreshLayout>

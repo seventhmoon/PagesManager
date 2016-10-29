@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import com.androidfung.facebook.pagesmanager.R;
 
+@Deprecated
 public class DummyTabbedActivity extends AppCompatActivity {
 
     /**

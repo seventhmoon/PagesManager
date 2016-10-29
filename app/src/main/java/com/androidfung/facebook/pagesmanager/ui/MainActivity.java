@@ -4,8 +4,12 @@ package com.androidfung.facebook.pagesmanager.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -39,6 +43,8 @@ import com.google.gson.GsonBuilder;
 import java.util.List;
 import java.util.TreeMap;
 
+import static android.view.View.GONE;
+
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener, PageFeedFragment.OnFragmentInteractionListener, NavigationCallback, NewPostFragment.OnFragmentInteractionListener {
 
@@ -59,7 +65,11 @@ public class MainActivity extends BaseActivity
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-    private PageFeedFragment mFeedFragment;
+    private SectionsPagerAdapter mSectionsPagerAdapter;
+    private ViewPager mViewPager;
+
+    private PageFeedFragment mPublishedFragment, mUnpublishedFragment;
+
 
     public MainActivity() {
     }
@@ -98,8 +108,23 @@ public class MainActivity extends BaseActivity
     private void initViews() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+//        mSectionsPagerAdapter = new DummyTabbedActivity.SectionsPagerAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+//        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
+
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setOnClickListener(view -> showNewPostDialog());
+        mFab.setOnClickListener(view -> {
+            showNewPostDialog();
+//            startNewPostActivity();
+        });
 
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -123,6 +148,21 @@ public class MainActivity extends BaseActivity
         // specify an adapter (see also next example)
         View headerLayout = mNavigationView.getHeaderView(0);
 
+        AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
+                if (currentAccessToken == null){
+                    //log out
+
+                    hideFab();
+                    hideTabs();
+                    mRecyclerView.setVisibility(GONE);
+                    setTitle(R.string.title_activity_main);
+                    mViewPager.setVisibility(GONE);
+                }
+            }
+        };
+
         LoginButton loginButton = (LoginButton) headerLayout.findViewById(R.id.login_button);
 
         loginButton.setPublishPermissions("manage_pages", "publish_pages", "publish_actions");
@@ -138,6 +178,9 @@ public class MainActivity extends BaseActivity
 
                     //show login Fragment
                     hideFab();
+                    hideTabs();
+                    mRecyclerView.setVisibility(GONE);
+                    setTitle(R.string.title_activity_main);
 
                 } else {
                     //user logged in
@@ -147,6 +190,7 @@ public class MainActivity extends BaseActivity
 
                     //show post feed fragment
                     showFab();
+                    mRecyclerView.setVisibility(View.VISIBLE);
                 }
                 updateDrawerAsync();
 
@@ -168,7 +212,7 @@ public class MainActivity extends BaseActivity
     private void updateDrawerAsync() {
         if (AccessToken.getCurrentAccessToken() == null) {
             //user not logged in
-            mRecyclerView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(GONE);
         } else {
             //user logged in
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -225,11 +269,11 @@ public class MainActivity extends BaseActivity
     }
 
 
-    private void createNewPostAsync(String pageId, String content) {
+    private void createNewPostAsync(String pageId, String content, boolean published) {
 
         Bundle params = new Bundle();
         params.putString("message", content);
-        params.putBoolean("published", false);
+        params.putBoolean("published", published);
 
 
 
@@ -248,15 +292,30 @@ public class MainActivity extends BaseActivity
                 Toast.makeText(this, graphResponse.getError().toString(), Toast.LENGTH_SHORT).show();
             }else {
 
-                if (mFeedFragment != null) {
-                    mFeedFragment.refresh();
+//                if (mFeedFragment != null) {
+//                    mFeedFragment.refresh();
+//                }
+//                displayPageFeed(mPageId);
+
+
+
+                for (int i =0 ;i < mSectionsPagerAdapter.getCount(); i++) {
+//                int currentTabIndex = mViewPager.getCurrentItem();
+                    ((PageFeedFragment) mSectionsPagerAdapter.getItem(i)).refresh();
                 }
+
             }
         });
 
         graphRequest.executeAsync();
     }
 
+    private void startNewPostActivity(){
+
+        Intent intent = new Intent(this, NewPostActivity.class);
+        intent.putExtra("PAGE_ID", mPageId);
+        startActivity(intent);
+    }
 
     private void getAvailablePagesAsync() {
         GraphRequest graphRequest = GraphRequestHelper.getMeAccoountsGraphRequest(graphResponse->{
@@ -265,15 +324,18 @@ public class MainActivity extends BaseActivity
             AccountsResponse tokenResponse = gson.fromJson(graphObject, AccountsResponse.class);
 
 
-            // TODO: 10/19/2016 Load item 0
+
             List<Account> accounts = tokenResponse.getData();
-            if (accounts != null) {
+            if (accounts != null && !accounts.isEmpty()) {
                 //update Drawer
                 mAdapter = new NavPageListAdapter(accounts, this);
                 mRecyclerView.setAdapter(mAdapter);
 
                 //load item 0;
                 mAccessTokenMap = tokenResponse.getAccessTokens();
+                displayPageFeed(accounts.get(0).getId()) ;
+                setTitle(accounts.get(0).getName());
+//                mRecyclerView.getChildAt(0).callOnClick();
             }
 
         });
@@ -281,8 +343,16 @@ public class MainActivity extends BaseActivity
     }
 
 
+    private void hideTabs(){
+        findViewById(R.id.tabs).setVisibility(GONE);
+    }
+
+    private void showTab(){
+        findViewById(R.id.tabs).setVisibility(View.VISIBLE);
+    }
+
     private void hideFab() {
-        mFab.setVisibility(View.GONE);
+        mFab.setVisibility(GONE);
     }
 
     private void showFab() {
@@ -291,26 +361,98 @@ public class MainActivity extends BaseActivity
 
     @Override
     public void displayPageFeed(String pageId) {
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        mFeedFragment = PageFeedFragment.newInstance(pageId);
-        ft.replace(R.id.content_main, mFeedFragment);
-        ft.commit();
+//        FragmentManager fm = getSupportFragmentManager();
+//        FragmentTransaction ft = fm.beginTransaction();
+//        mFeedFragment = PageFeedFragment.newInstance(pageId);
+//        ft.replace(R.id.content_main, mFeedFragment);
+//        ft.commit();
+//        Log.d(TAG, "displayPageFeed(" + pageId + ")");
+//        mViewPager.removeAllViews();
+        if (mPublishedFragment == null){
+            mPublishedFragment = PageFeedFragment.newInstance(pageId, PageFeedFragment.TYPE_FEED);
+        }else{
+            mPublishedFragment.setPageId(pageId);
+        }
+
+        if (mUnpublishedFragment == null){
+            mUnpublishedFragment = PageFeedFragment.newInstance(pageId, PageFeedFragment.TYPE_PROMOTEABLE_POSTS);
+        }else{
+            mUnpublishedFragment.setPageId(pageId);
+        }
+
+
+
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), pageId);
+
+
+        // Set up the ViewPager with the sections adapter.
+//        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setVisibility(View.VISIBLE);
+
         mPageId = pageId;
+        mViewPager.setVisibility(View.VISIBLE);
         mDrawer.closeDrawers();
     }
 
     private void showNewPostDialog() {
         FragmentManager fm = getSupportFragmentManager();
         NewPostFragment newPostFragment = NewPostFragment.newInstance(mPageId);
-        newPostFragment.show(fm, "fragment_edit_name");
+        newPostFragment.show(fm, "new_post_fragment");
     }
 
 
     @Override
-    public void onPostButtonPressed(String pageId, String content) {
-        createNewPostAsync(pageId, content);
+    public void onPostButtonPressed(String pageId, String content, boolean published) {
+        createNewPostAsync(pageId, content, published);
     }
 
+    /**
+     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+     * one of the sections/tabs/pages.
+     */
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+
+        private final String TAG = SectionsPagerAdapter.class.getSimpleName();
+
+
+        private String mPageId;
+
+        public SectionsPagerAdapter(FragmentManager fm, String pageId) {
+            super(fm);
+                mPageId = pageId;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+
+            if (position == 0){
+                return  mPublishedFragment;
+            }else{
+                return mUnpublishedFragment;
+            }
+        }
+
+        @Override
+        public int getCount() {
+
+            return 2;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (position) {
+                case 0:
+                    return getString(R.string.label_published);
+                case 1:
+                    return getString(R.string.label_unpublished);
+            }
+            return null;
+        }
+    }
 }
