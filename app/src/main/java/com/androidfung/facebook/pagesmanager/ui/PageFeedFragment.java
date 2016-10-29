@@ -12,29 +12,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import com.androidfung.facebook.graph.GraphRequestHelper;
 import com.androidfung.facebook.graph.model.response.page.FeedResponse;
 import com.androidfung.facebook.pagesmanager.R;
-import com.facebook.AccessToken;
+
 import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Arrays;
+
+import java.util.Collections;
 
 
 /**
  * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link PageFeedFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
  * Use the {@link PageFeedFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
@@ -66,7 +62,6 @@ public class PageFeedFragment extends Fragment {
 
     private TextView mTextViewEmpty;
 
-    private OnFragmentInteractionListener mListener;
     private int mType;
 
     public PageFeedFragment() {
@@ -90,9 +85,9 @@ public class PageFeedFragment extends Fragment {
         return fragment;
     }
 
-    public String getPageId() {
-        return mPageId;
-    }
+//    public String getPageId() {
+//        return mPageId;
+//    }
 
     public void setPageId(String pageId) {
         this.mPageId = pageId;
@@ -108,7 +103,8 @@ public class PageFeedFragment extends Fragment {
 
             Log.d(TAG, mPageId);
         }
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("read_insights"));
+//        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("read_insights"));
+        LoginManager.getInstance().logInWithReadPermissions(this, Collections.singletonList("read_insights"));
     }
 
     public void refresh() {
@@ -201,31 +197,11 @@ public class PageFeedFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-
-    }
 }

@@ -46,7 +46,7 @@ import java.util.TreeMap;
 import static android.view.View.GONE;
 
 public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, PageFeedFragment.OnFragmentInteractionListener, NavigationCallback, NewPostFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, NavigationCallback, NewPostFragment.OnFragmentInteractionListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -151,7 +151,7 @@ public class MainActivity extends BaseActivity
         AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
-                if (currentAccessToken == null){
+                if (currentAccessToken == null) {
                     //log out
 
                     hideFab();
@@ -243,12 +243,6 @@ public class MainActivity extends BaseActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -276,10 +270,9 @@ public class MainActivity extends BaseActivity
         params.putBoolean("published", published);
 
 
-
         AccessToken userToken = AccessToken.getCurrentAccessToken();
-        AccessToken pageToken = new AccessToken(mAccessTokenMap.get(mPageId),userToken.getApplicationId(), userToken.getUserId(),
-            userToken.getPermissions(), userToken.getDeclinedPermissions(), null,null,null
+        AccessToken pageToken = new AccessToken(mAccessTokenMap.get(mPageId), userToken.getApplicationId(), userToken.getUserId(),
+                userToken.getPermissions(), userToken.getDeclinedPermissions(), null, null, null
         );
 
         Log.d(TAG, userToken.getPermissions().toString());
@@ -288,9 +281,9 @@ public class MainActivity extends BaseActivity
         GraphRequest graphRequest = GraphRequestHelper.getNewPostGraphRequest(pageToken, params, pageId, graphResponse -> {
             Log.d(TAG, graphResponse.toString());
 
-            if (graphResponse.getError() != null){
+            if (graphResponse.getError() != null) {
                 Toast.makeText(this, graphResponse.getError().toString(), Toast.LENGTH_SHORT).show();
-            }else {
+            } else {
 
 //                if (mFeedFragment != null) {
 //                    mFeedFragment.refresh();
@@ -298,8 +291,7 @@ public class MainActivity extends BaseActivity
 //                displayPageFeed(mPageId);
 
 
-
-                for (int i =0 ;i < mSectionsPagerAdapter.getCount(); i++) {
+                for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
 //                int currentTabIndex = mViewPager.getCurrentItem();
                     ((PageFeedFragment) mSectionsPagerAdapter.getItem(i)).refresh();
                 }
@@ -310,19 +302,12 @@ public class MainActivity extends BaseActivity
         graphRequest.executeAsync();
     }
 
-    private void startNewPostActivity(){
-
-        Intent intent = new Intent(this, NewPostActivity.class);
-        intent.putExtra("PAGE_ID", mPageId);
-        startActivity(intent);
-    }
 
     private void getAvailablePagesAsync() {
-        GraphRequest graphRequest = GraphRequestHelper.getMeAccoountsGraphRequest(graphResponse->{
+        GraphRequest graphRequest = GraphRequestHelper.getMeAccoountsGraphRequest(graphResponse -> {
             String graphObject = graphResponse.getJSONObject().toString();
             Gson gson = new GsonBuilder().create();
             AccountsResponse tokenResponse = gson.fromJson(graphObject, AccountsResponse.class);
-
 
 
             List<Account> accounts = tokenResponse.getData();
@@ -333,7 +318,7 @@ public class MainActivity extends BaseActivity
 
                 //load item 0;
                 mAccessTokenMap = tokenResponse.getAccessTokens();
-                displayPageFeed(accounts.get(0).getId()) ;
+                displayPageFeed(accounts.get(0).getId());
                 setTitle(accounts.get(0).getName());
 //                mRecyclerView.getChildAt(0).callOnClick();
             }
@@ -343,11 +328,11 @@ public class MainActivity extends BaseActivity
     }
 
 
-    private void hideTabs(){
+    private void hideTabs() {
         findViewById(R.id.tabs).setVisibility(GONE);
     }
 
-    private void showTab(){
+    private void showTab() {
         findViewById(R.id.tabs).setVisibility(View.VISIBLE);
     }
 
@@ -361,32 +346,23 @@ public class MainActivity extends BaseActivity
 
     @Override
     public void displayPageFeed(String pageId) {
-//        FragmentManager fm = getSupportFragmentManager();
-//        FragmentTransaction ft = fm.beginTransaction();
-//        mFeedFragment = PageFeedFragment.newInstance(pageId);
-//        ft.replace(R.id.content_main, mFeedFragment);
-//        ft.commit();
-//        Log.d(TAG, "displayPageFeed(" + pageId + ")");
-//        mViewPager.removeAllViews();
-        if (mPublishedFragment == null){
+        if (mPublishedFragment == null) {
             mPublishedFragment = PageFeedFragment.newInstance(pageId, PageFeedFragment.TYPE_FEED);
-        }else{
+        } else {
             mPublishedFragment.setPageId(pageId);
         }
 
-        if (mUnpublishedFragment == null){
+        if (mUnpublishedFragment == null) {
             mUnpublishedFragment = PageFeedFragment.newInstance(pageId, PageFeedFragment.TYPE_PROMOTEABLE_POSTS);
-        }else{
+        } else {
             mUnpublishedFragment.setPageId(pageId);
         }
 
 
-
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), pageId);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
 
         // Set up the ViewPager with the sections adapter.
-//        mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -418,12 +394,8 @@ public class MainActivity extends BaseActivity
 
         private final String TAG = SectionsPagerAdapter.class.getSimpleName();
 
-
-        private String mPageId;
-
-        public SectionsPagerAdapter(FragmentManager fm, String pageId) {
+        public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
-                mPageId = pageId;
         }
 
         @Override
@@ -431,9 +403,9 @@ public class MainActivity extends BaseActivity
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
 
-            if (position == 0){
-                return  mPublishedFragment;
-            }else{
+            if (position == 0) {
+                return mPublishedFragment;
+            } else {
                 return mUnpublishedFragment;
             }
         }
