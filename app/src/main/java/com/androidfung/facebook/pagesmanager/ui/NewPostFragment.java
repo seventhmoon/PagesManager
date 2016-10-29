@@ -1,18 +1,23 @@
 package com.androidfung.facebook.pagesmanager.ui;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.TextView;
 
 import com.androidfung.facebook.pagesmanager.R;
 
@@ -67,15 +72,42 @@ public class NewPostFragment extends DialogFragment {
     }
 
     @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+
+        // request a window without the title
+        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+//        dialog.setTitle(R.string.label_new_post);
+        return dialog;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_new_post, container, false);
 
-        getDialog().setTitle(R.string.label_new_post);
 
-        mButtonSubmit = (Button) rootView.findViewById(R.id.button_post);
         mEditTextContent = (EditText) rootView.findViewById(R.id.edittext_post_content);
+        mEditTextContent.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mButtonSubmit.setEnabled(charSequence.length()!=0);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+        mButtonSubmit = (Button) rootView.findViewById(R.id.button_post);
+//        mEditTextContent = (EditText) rootView.findViewById(R.id.edittext_post_content);
 
         RadioButton radioButtonPublished = (RadioButton) rootView.findViewById(R.id.radiobutton_published);
 
@@ -120,4 +152,6 @@ public class NewPostFragment extends DialogFragment {
 
         void onPostButtonPressed(@NonNull String pageId, @NonNull String content, boolean published);
     }
+
+
 }

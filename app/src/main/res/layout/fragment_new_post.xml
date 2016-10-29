@@ -2,58 +2,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:padding="16dp"
     tools:context="com.androidfung.facebook.pagesmanager.ui.NewPostFragment">
-
 
 
     <EditText
         android:id="@+id/edittext_post_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:ems="10"
+        android:gravity="top"
         android:hint="@string/edittext_hint_post_content"
         android:inputType="textMultiLine"
-        android:lines="4"
-
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:lines="4" />
 
     <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/radiogroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/edittext_post_content"
-        android:id="@+id/radiogroup"
-
+        android:layout_marginTop="16dp"
         android:orientation="horizontal">
-    <RadioButton
-        android:text="@string/label_regular"
-        android:layout_height="wrap_content"
-        android:checked="true"
 
-        android:layout_width="wrap_content"
-        android:id="@+id/radiobutton_published" />
+        <RadioButton
+            android:id="@+id/radiobutton_published"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/label_regular" />
 
-    <RadioButton
-        android:layout_width="wrap_content"
-        android:text="@string/label_unpublished"
-        app:layout_widthPercent="50%"
-        android:layout_height="wrap_content"
-
-
-        android:id="@+id/radiobutton_unpbulished" />
-</RadioGroup>
+        <RadioButton
+            android:id="@+id/radiobutton_unpbulished"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_unpublished" />
+    </RadioGroup>
 
     <Button
-        android:layout_below="@id/radiogroup"
         android:id="@+id/button_post"
         android:layout_width="match_parent"
         android:layout_height="64dp"
+        android:layout_below="@id/radiogroup"
+        android:layout_marginTop="16dp"
+        android:enabled="false"
         android:padding="8dp"
         android:text="@string/button_text_post" />
-
-
 
 
 </RelativeLayout>

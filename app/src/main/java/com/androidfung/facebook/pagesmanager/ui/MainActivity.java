@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -147,7 +148,7 @@ public class MainActivity extends BaseActivity
 
         // specify an adapter (see also next example)
         View headerLayout = mNavigationView.getHeaderView(0);
-
+        View viewNotLoggedIn = findViewById(R.id.textview_not_logged_in);
         AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
@@ -156,12 +157,14 @@ public class MainActivity extends BaseActivity
 
                     hideFab();
                     hideTabs();
-                    mRecyclerView.setVisibility(GONE);
+                    mRecyclerView.setVisibility(View.GONE);
                     setTitle(R.string.title_activity_main);
-                    mViewPager.setVisibility(GONE);
+                    mViewPager.setVisibility(View.GONE);
+                    viewNotLoggedIn.setVisibility(View.VISIBLE);
                 }
             }
         };
+
 
         LoginButton loginButton = (LoginButton) headerLayout.findViewById(R.id.login_button);
 
@@ -191,6 +194,7 @@ public class MainActivity extends BaseActivity
                     //show post feed fragment
                     showFab();
                     mRecyclerView.setVisibility(View.VISIBLE);
+                    viewNotLoggedIn.setVisibility(View.GONE);
                 }
                 updateDrawerAsync();
 
@@ -199,7 +203,7 @@ public class MainActivity extends BaseActivity
 
             @Override
             public void onCancel() {
-                Toast.makeText(getApplicationContext(), "onSuccess", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "onSuccess", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -375,7 +379,9 @@ public class MainActivity extends BaseActivity
 
     private void showNewPostDialog() {
         FragmentManager fm = getSupportFragmentManager();
+
         NewPostFragment newPostFragment = NewPostFragment.newInstance(mPageId);
+        newPostFragment.setStyle(DialogFragment.STYLE_NO_TITLE,0);
         newPostFragment.show(fm, "new_post_fragment");
     }
 

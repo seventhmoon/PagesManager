@@ -20,4 +20,5 @@
     <string name="label_new_post">New Post</string>
     <string name="label_regular">Regular</string>
     <string name="text_no_content">No Content</string>
+    <string name="text_not_logged_in">You are not logged in</string>
 </resources>
