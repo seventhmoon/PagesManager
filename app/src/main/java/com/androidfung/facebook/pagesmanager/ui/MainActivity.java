@@ -68,7 +68,7 @@ public class MainActivity extends BaseActivity
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
-
+    private View mViewNotLoggedIn;
     private PageFeedFragment mPublishedFragment, mUnpublishedFragment;
 
 
@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity
 
         // specify an adapter (see also next example)
         View headerLayout = mNavigationView.getHeaderView(0);
-        View viewNotLoggedIn = findViewById(R.id.textview_not_logged_in);
+        mViewNotLoggedIn = findViewById(R.id.textview_not_logged_in);
         AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
@@ -160,7 +160,7 @@ public class MainActivity extends BaseActivity
                     mRecyclerView.setVisibility(View.GONE);
                     setTitle(R.string.title_activity_main);
                     mViewPager.setVisibility(View.GONE);
-                    viewNotLoggedIn.setVisibility(View.VISIBLE);
+                    mViewNotLoggedIn.setVisibility(View.VISIBLE);
                 }
             }
         };
@@ -187,14 +187,10 @@ public class MainActivity extends BaseActivity
 
                 } else {
                     //user logged in
-
-                    //get page id array
-//                    getAvailablePagesAsync();
-
                     //show post feed fragment
                     showFab();
                     mRecyclerView.setVisibility(View.VISIBLE);
-                    viewNotLoggedIn.setVisibility(View.GONE);
+                    mViewNotLoggedIn.setVisibility(View.GONE);
                 }
                 updateDrawerAsync();
 
@@ -324,7 +320,7 @@ public class MainActivity extends BaseActivity
                 mAccessTokenMap = tokenResponse.getAccessTokens();
                 displayPageFeed(accounts.get(0).getId());
                 setTitle(accounts.get(0).getName());
-//                mRecyclerView.getChildAt(0).callOnClick();
+                mViewNotLoggedIn.setVisibility(GONE);
             }
 
         });

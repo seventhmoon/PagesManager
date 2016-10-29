@@ -7,8 +7,6 @@
 
     <string name="action_settings">Settings</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_mobile">MobileActivity</string>
     <string name="edittext_hint_post_content">What\'s on your mind?</string>
     <string name="button_text_post">Post</string>
@@ -21,4 +19,9 @@
     <string name="label_regular">Regular</string>
     <string name="text_no_content">No Content</string>
     <string name="text_not_logged_in">You are not logged in</string>
+
+    <plurals name="label_view">
+        <item quantity="one">%1$d person saw this post</item>
+        <item quantity="other">%1$d people saw this post</item>
+    </plurals>
 </resources>
