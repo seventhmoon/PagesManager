@@ -77,7 +77,6 @@ public class NewPostFragment extends DialogFragment {
 
         // request a window without the title
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-//        dialog.setTitle(R.string.label_new_post);
         return dialog;
     }
 
@@ -106,13 +105,11 @@ public class NewPostFragment extends DialogFragment {
 
             }
         });
-        mButtonSubmit = (Button) rootView.findViewById(R.id.button_post);
-//        mEditTextContent = (EditText) rootView.findViewById(R.id.edittext_post_content);
 
+        mButtonSubmit = (Button) rootView.findViewById(R.id.button_post);
         RadioButton radioButtonPublished = (RadioButton) rootView.findViewById(R.id.radiobutton_published);
 
         mButtonSubmit.setOnClickListener(view -> {
-            Log.d(TAG, mPageId + "\t" + mEditTextContent.getText().toString());
             mListener.onPostButtonPressed(mPageId, mEditTextContent.getText().toString(), radioButtonPublished.isChecked());
             this.dismiss();
         });

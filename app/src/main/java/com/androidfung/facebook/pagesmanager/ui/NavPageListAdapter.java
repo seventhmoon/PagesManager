@@ -44,7 +44,7 @@ public class NavPageListAdapter extends RecyclerView.Adapter<NavPageListAdapter.
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public NavPageListAdapter(List<Account> myDataset, NavigationCallback navigationCallback) {
-        mDataset = new ArrayList<Account>(myDataset);
+        mDataset = new ArrayList<>(myDataset);
         mNavigationCallback = navigationCallback;
     }
 
