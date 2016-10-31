@@ -42,10 +42,6 @@
                 <data android:scheme="@string/facebook_app_id" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.DummyTabbedActivity"
-            android:label="@string/title_activity_dummy_tabbed"
-            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".ui.NewPostActivity"></activity>
     </application>
 

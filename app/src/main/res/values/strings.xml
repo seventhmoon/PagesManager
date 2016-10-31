@@ -19,6 +19,7 @@
     <string name="label_regular">Regular</string>
     <string name="text_no_content">No Content</string>
     <string name="text_not_logged_in">You are not logged in</string>
+    <string name="text_no_pages_returned">You are not administrator of any Page</string>
 
     <plurals name="label_view">
         <item quantity="one">%1$d person saw this post</item>

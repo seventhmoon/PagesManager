@@ -25,7 +25,6 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
     private static final String TAG = PageFeedAdapter.class.getSimpleName();
     private ArrayList<Post> mDataset;
     private Context mContext;
-//    private String mPageId;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -35,18 +34,15 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
         public View mRootView;
         public TextView mTextViewId;
         public TextView mTextViewMessage;
-//        public TextView mTextViewStory;
         public TextView mTextViewCreatedTime;
         public TextView mTextViewViewCount;
-        public TextView mTextViewHidden;
+
         public ViewHolder(View v) {
             super(v);
             mTextViewId = (TextView) v.findViewById(R.id.textview_post_id);
-            mTextViewCreatedTime = (TextView)v.findViewById(R.id.textview_post_created_time);
+            mTextViewCreatedTime = (TextView) v.findViewById(R.id.textview_post_created_time);
             mTextViewMessage = (TextView) v.findViewById(R.id.textview_post_message);
-//            mTextViewStory = (TextView)v.findViewById(R.id.textview_post_story);
             mTextViewViewCount = (TextView) v.findViewById(R.id.textview_post_view_count);
-            mTextViewHidden = (TextView) v.findViewById(R.id.textview_post_hidden);
         }
     }
 
@@ -59,7 +55,7 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
     // Create new views (invoked by the layout manager)
     @Override
     public PageFeedAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                   int viewType) {
+                                                         int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_post, parent, false);
@@ -78,15 +74,15 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
         holder.mTextViewId.setText(post.getId());
         holder.mTextViewMessage.setText(post.getMessage());
 
-        holder.mTextViewHidden.setVisibility(post.isHidden()?View.VISIBLE:View.GONE);
-
         holder.mTextViewCreatedTime.setText(mDateFormat.format(post.getCreatedTime()));
 
-        if (post.getInsights() != null && post.getInsights().getData().get(0) != null && post.getInsights().getData().get(0).getValues().get(0) != null) {
+        if (post.getInsights() != null &&
+                post.getInsights().getData().get(0) != null &&
+                post.getInsights().getData().get(0).getValues().get(0) != null) {
             int viewCount = post.getInsights().getData().get(0).getValues().get(0).getValue();
             holder.mTextViewViewCount.setText(mContext.getResources().getQuantityString(R.plurals.label_view, viewCount, viewCount));
             holder.mTextViewViewCount.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             holder.mTextViewViewCount.setVisibility(View.GONE);
         }
 

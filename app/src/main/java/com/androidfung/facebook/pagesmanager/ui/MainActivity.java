@@ -81,27 +81,17 @@ public class MainActivity extends BaseActivity
 
 
         mCallbackManager = CallbackManager.Factory.create();
-        mPageId = getString(R.string.facebook_page_id);
-
         setContentView(R.layout.activity_main);
-
         initViews();
 
 
         if (AccessToken.getCurrentAccessToken() == null) {
             //user not logged in
-
-            //show login Fragment
-            hideFab();
-
+            hideViewsAfterLogout();
         } else {
             //user logged in
-
-            //get page id array
             getAvailablePagesAsync();
 
-            //show post feed fragment
-            showFab();
         }
     }
 
@@ -109,10 +99,6 @@ public class MainActivity extends BaseActivity
     private void initViews() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-//        mSectionsPagerAdapter = new DummyTabbedActivity.SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -154,13 +140,8 @@ public class MainActivity extends BaseActivity
             protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
                 if (currentAccessToken == null) {
                     //log out
-
-                    hideFab();
-                    hideTabs();
-                    mRecyclerView.setVisibility(View.GONE);
                     setTitle(R.string.title_activity_main);
-                    mViewPager.setVisibility(View.GONE);
-                    mViewNotLoggedIn.setVisibility(View.VISIBLE);
+                    hideViewsAfterLogout();
                 }
             }
         };
@@ -262,6 +243,13 @@ public class MainActivity extends BaseActivity
         mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
+    private void hideViewsAfterLogout(){
+        hideFab();
+        hideTabs();
+        mRecyclerView.setVisibility(View.GONE);
+        mViewPager.setVisibility(View.GONE);
+        mViewNotLoggedIn.setVisibility(View.VISIBLE);
+    }
 
     private void createNewPostAsync(String pageId, String content, boolean published) {
 
@@ -270,6 +258,7 @@ public class MainActivity extends BaseActivity
         params.putBoolean("published", published);
 
 
+        //Use Page's AccessToken
         AccessToken userToken = AccessToken.getCurrentAccessToken();
         AccessToken pageToken = new AccessToken(mAccessTokenMap.get(mPageId), userToken.getApplicationId(), userToken.getUserId(),
                 userToken.getPermissions(), userToken.getDeclinedPermissions(), null, null, null
@@ -285,14 +274,7 @@ public class MainActivity extends BaseActivity
                 Toast.makeText(this, graphResponse.getError().toString(), Toast.LENGTH_SHORT).show();
             } else {
 
-//                if (mFeedFragment != null) {
-//                    mFeedFragment.refresh();
-//                }
-//                displayPageFeed(mPageId);
-
-
                 for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-//                int currentTabIndex = mViewPager.getCurrentItem();
                     ((PageFeedFragment) mSectionsPagerAdapter.getItem(i)).refresh();
                 }
 
@@ -320,7 +302,10 @@ public class MainActivity extends BaseActivity
                 mAccessTokenMap = tokenResponse.getAccessTokens();
                 displayPageFeed(accounts.get(0).getId());
                 setTitle(accounts.get(0).getName());
+                showFab();
                 mViewNotLoggedIn.setVisibility(GONE);
+            }else{
+                Toast.makeText(this, R.string.text_no_pages_returned, Toast.LENGTH_SHORT).show();
             }
 
         });
