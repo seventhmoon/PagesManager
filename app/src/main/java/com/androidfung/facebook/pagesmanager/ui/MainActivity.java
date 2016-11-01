@@ -26,6 +26,8 @@ import android.widget.Toast;
 
 import com.androidfung.facebook.graph.GraphRequestHelper;
 import com.androidfung.facebook.graph.model.Account;
+import com.androidfung.facebook.graph.model.Post;
+import com.androidfung.facebook.graph.model.response.Response;
 import com.androidfung.facebook.pagesmanager.R;
 import com.androidfung.facebook.graph.model.response.me.AccountsResponse;
 import com.facebook.AccessToken;
@@ -40,6 +42,7 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.List;
 import java.util.TreeMap;
@@ -132,7 +135,7 @@ public class MainActivity extends BaseActivity
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        // specify an adapter (see also next example)
+        // specify an adapter
         View headerLayout = mNavigationView.getHeaderView(0);
         mViewNotLoggedIn = findViewById(R.id.textview_not_logged_in);
         AccessTokenTracker accessTokenTracker = new AccessTokenTracker() {
@@ -289,26 +292,32 @@ public class MainActivity extends BaseActivity
         GraphRequest graphRequest = GraphRequestHelper.getMeAccoountsGraphRequest(graphResponse -> {
             String graphObject = graphResponse.getJSONObject().toString();
             Gson gson = new GsonBuilder().create();
-            AccountsResponse tokenResponse = gson.fromJson(graphObject, AccountsResponse.class);
+            Response<Account> tokenResponse = gson.fromJson(graphObject, new TypeToken<Response<Account>>(){}.getType());
 
+            if (tokenResponse.getError() != null) {
+                Toast.makeText(this, tokenResponse.getError().getMessage(), Toast.LENGTH_SHORT).show();
 
-            List<Account> accounts = tokenResponse.getData();
-            if (accounts != null && !accounts.isEmpty()) {
-                //update Drawer
-                mAdapter = new NavPageListAdapter(accounts, this);
-                mRecyclerView.setAdapter(mAdapter);
+            }else {
 
-                //load item 0;
-                mAccessTokenMap = tokenResponse.getAccessTokens();
-                displayPageFeed(accounts.get(0).getId());
-                setTitle(accounts.get(0).getName());
-                showFab();
-                mViewNotLoggedIn.setVisibility(GONE);
-            }else{
-                Toast.makeText(this, R.string.text_no_pages_returned, Toast.LENGTH_SHORT).show();
+                List<Account> accounts = tokenResponse.getData();
+                if (accounts != null && !accounts.isEmpty()) {
+                    //update Drawer
+                    mAdapter = new NavPageListAdapter(accounts, this);
+                    mRecyclerView.setAdapter(mAdapter);
+
+                    //load item 0;
+                    mAccessTokenMap = getAccessTokens(accounts);
+                    displayPageFeed(accounts.get(0).getId());
+                    setTitle(accounts.get(0).getName());
+                    showFab();
+                    mViewNotLoggedIn.setVisibility(GONE);
+                } else {
+                    Toast.makeText(this, R.string.text_no_pages_returned, Toast.LENGTH_SHORT).show();
+                }
+
             }
-
         });
+
         graphRequest.executeAsync();
     }
 
@@ -413,5 +422,15 @@ public class MainActivity extends BaseActivity
             }
             return null;
         }
+    }
+
+    private static TreeMap<String, String> getAccessTokens(List<Account> accounts){
+        TreeMap<String, String> map = new TreeMap<>();
+
+        for (Account accout : accounts){
+            map.put(accout.getId(), accout.getAccessToken());
+
+        }
+        return map;
     }
 }

@@ -5,16 +5,21 @@ import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.androidfung.facebook.graph.GraphRequestHelper;
+import com.androidfung.facebook.graph.model.Post;
+import com.androidfung.facebook.graph.model.response.Response;
 import com.androidfung.facebook.graph.model.response.page.FeedResponse;
 import com.androidfung.facebook.pagesmanager.R;
 
@@ -22,6 +27,7 @@ import com.facebook.GraphRequest;
 import com.facebook.login.LoginManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -162,18 +168,23 @@ public class PageFeedFragment extends Fragment {
             } else {
                 String graphObject = graphResponse.getJSONObject().toString();
                 Gson gson = new GsonBuilder().create();
-                FeedResponse feedResponse = gson.fromJson(graphObject, FeedResponse.class);
+                ;
+                Response<Post> feedResponse = gson.fromJson(graphObject, new TypeToken<Response<Post>>(){}.getType());
 
-                mAdapter = new PageFeedAdapter(getContext(), feedResponse.getData());
-                mRecyclerView.setAdapter(mAdapter);
-                if (feedResponse.getData().isEmpty()) {
-                    mRecyclerView.setVisibility(View.GONE);
-                    mTextViewEmpty.setVisibility(View.VISIBLE);
-//                        Toast.makeText(getActivity(), "The result set is empty.", Toast.LENGTH_SHORT).show();
-                } else {
-                    mRecyclerView.setVisibility(View.VISIBLE);
-                    mTextViewEmpty.setVisibility(View.GONE);
 
+                if (feedResponse.getError() != null){
+                    Toast.makeText(getActivity(), feedResponse.getError().getMessage(), Toast.LENGTH_SHORT).show();
+                }else {
+                    mAdapter = new PageFeedAdapter(getContext(), feedResponse.getData());
+                    mRecyclerView.setAdapter(mAdapter);
+                    if (feedResponse.getData().isEmpty()) {
+                        mRecyclerView.setVisibility(View.GONE);
+                        mTextViewEmpty.setVisibility(View.VISIBLE);
+                    } else {
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        mTextViewEmpty.setVisibility(View.GONE);
+
+                    }
                 }
             }
             mSwipeRefreshLayout.setRefreshing(false);

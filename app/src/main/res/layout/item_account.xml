@@ -6,13 +6,12 @@
     android:layout_marginTop="4dp"
     android:orientation="vertical"
     android:padding="4dp">
-    <!-- A CardView that contains a TextView -->
-
 
     <TextView
         android:id="@+id/textview_page_name"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:lines="1"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
     <TextView

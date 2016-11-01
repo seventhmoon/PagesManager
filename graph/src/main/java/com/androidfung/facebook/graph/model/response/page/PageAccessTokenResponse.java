@@ -1,11 +1,11 @@
-package com.androidfung.facebook.graph.model;
+package com.androidfung.facebook.graph.model.response.page;
 
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by fung on 10/14/2016.
+ * Class not in use
  */
-
 public class PageAccessTokenResponse {
     @SerializedName("access_token")
     private String accessToken;

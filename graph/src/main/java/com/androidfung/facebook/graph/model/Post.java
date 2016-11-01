@@ -1,6 +1,8 @@
 package com.androidfung.facebook.graph.model;
 
 
+import com.androidfung.facebook.graph.model.response.Response;
+import com.androidfung.facebook.graph.model.response.post.InsightsResponse;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
@@ -22,6 +24,8 @@ public class Post {
         LINK, STATUS, PHOTO, VIDEO, OFFER
     }
 
+//    private InsightsResponse insights;
+    private Response<Insight> insights;
 
     private String id;
     @SerializedName("admin_creator")
@@ -39,6 +43,8 @@ public class Post {
     private String icon;
     @SerializedName("instagram_eligibility")
     private String instagramEligibility;
+
+
     @SerializedName("is_hidden")
     private boolean hidden;
     @SerializedName("is_instagram_eligible")
@@ -61,8 +67,6 @@ public class Post {
     private Object privacy;
     private Object[] properties;
     private Object shares;
-
-
     private String source;
     @SerializedName("status_type")
     private StatusType statusType;
@@ -71,6 +75,20 @@ public class Post {
     @SerializedName("updated_time")
     private Date updatedTime;
 
+    public Response<Insight> getInsights() {
+        return insights;
+    }
+
+    public void setInsights(Response<Insight> insights) {
+        this.insights = insights;
+    }
+//    public InsightsResponse getInsights() {
+//        return insights;
+//    }
+//
+//    public void setInsights(InsightsResponse insights) {
+//        this.insights = insights;
+//    }
 
     public String getId() {
         return id;
@@ -95,6 +113,14 @@ public class Post {
     public void setMessage(String message) {
         this.message = message;
 
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
 

@@ -39,6 +39,7 @@ public class PageFeedAdapter extends RecyclerView.Adapter<PageFeedAdapter.ViewHo
 
         public ViewHolder(View v) {
             super(v);
+            mRootView = v;
             mTextViewId = (TextView) v.findViewById(R.id.textview_post_id);
             mTextViewCreatedTime = (TextView) v.findViewById(R.id.textview_post_created_time);
             mTextViewMessage = (TextView) v.findViewById(R.id.textview_post_message);
